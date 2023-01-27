@@ -68,6 +68,7 @@ import TodoServices from "../services/TodoServices.js";
 import TodoCreateDialogComponent from "../components/TodoCreateDialogComponent.vue";
 import TodoEditDialogComponent from "../components/TodoEditDialogComponent.vue";
 import TodoDeleteDialogComponent from "../components/TodoDeleteDialogComponent.vue";
+const _api = new TodoServices();
 export default {
   name: "TodoView",
   components: {
@@ -91,14 +92,15 @@ export default {
       todos: null,
       autocompleteTodo: null,
       task: null,
+      api: new TodoServices(),
     };
   },
+
   methods: {
     search: async function (value) {
       console.log(value.event);
       if (value.event.keyCode == 13) {
-        const api = new TodoServices();
-        const raw = await api.getTodos(1, { name: value.todo });
+        const raw = await _api.getTodos(1, { name: value.todo });
         if (raw.data.status == "OK") {
           this.todos = raw.data.data.data;
           this.currentPage = raw.data.data.current_page;
@@ -108,8 +110,7 @@ export default {
         this.task = value.todo;
         return;
       }
-      const api = new TodoServices();
-      const rawData = await api.autocomplete({ name: value.todo });
+      const rawData = await _api.autocomplete({ name: value.todo });
       if (rawData.data.status == "OK") {
         this.autocompleteTodo = rawData.data.data.map((value) => {
           return value.task;
@@ -140,34 +141,33 @@ export default {
       this.deleteId = obj.id;
     },
     editTodo: async function (event, i) {
-      const api = new TodoServices();
       const id = i.id;
-      const raw = await api.getTodo(id);
+      const raw = await _api.getTodo(id);
       this.isEditOpen = true;
       this.todo = raw.data.data;
     },
     DeleteDialogCloseTodo: async function (id) {
       console.error(id);
-      const api = new TodoServices();
-      const raw = await api.deleteTodo(id);
+
+      const raw = await _api.deleteTodo(id);
       if (raw.data.status == "OK") {
         this.setSuccessMessage(raw.data.message);
       } else {
         this.setErrorMessage(raw.data.message);
       }
       this.isDeleteOpen = false;
-      await this.getAllTodo(api);
+      await this.getAllTodo(_api);
     },
     editCloseTodo: async function (i) {
       console.log(i);
-      const api = new TodoServices();
-      const raw = await api.editTodo(i.id, {
+
+      const raw = await _api.editTodo(i.id, {
         task: i.task,
         completed: i.completed,
       });
       if (raw.data.status == "OK") {
         this.setSuccessMessage(raw.data.message);
-        await this.getAllTodo(api);
+        await this.getAllTodo(_api);
         window.scroll(0, 0);
         this.isEditOpen = false;
       } else {
@@ -178,14 +178,13 @@ export default {
       this.isOpen = true;
     },
     createTodo: async function (value) {
-      const api = new TodoServices();
-      const data = await api.createTodo(value);
+      const data = await _api.createTodo(value);
       if (data.data.status == "OK") {
         this.setSuccessMessage(data.data.message);
       } else {
         this.setSuccessMessage(data.data.message);
       }
-      await this.getAllTodo(api);
+      await this.getAllTodo(_api);
       this.isOpen = false;
     },
     closeCreateDialog: function () {
@@ -199,14 +198,12 @@ export default {
     },
   },
   created: async function () {
-    const api = new TodoServices();
-    await this.getAllTodo(api);
+    await this.getAllTodo(_api);
   },
   watch: {
     currentPage: function (newVal, oldVal) {
       if (newVal != oldVal) {
-        const api = new TodoServices();
-        this.getAllTodo(api);
+        this.getAllTodo(_api);
         window.scroll(0, 0);
       }
     },
