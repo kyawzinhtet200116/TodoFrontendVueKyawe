@@ -149,7 +149,7 @@ export default {
     DeleteDialogCloseTodo: async function (id) {
       const raw = await _api.deleteTodo(id);
       if (raw.data.status == "OK") {
-        if((this.total-1)%10==0){
+        if((this.todos.length-1)==0){
           this.currentPage=this.currentPage-1;
         }
         this.setSuccessMessage(raw.data.message);
